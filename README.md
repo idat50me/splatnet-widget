@@ -1,9 +1,9 @@
-## splatnet-widget
+# splatnet-widget
 iOS App「[Scriptable](https://apps.apple.com/us/app/scriptable/id1405459188)」を用いて，現在のゲソタウンの販売状況をiOSのウィジェットに表示する．
 
 ![widget_image](https://user-images.githubusercontent.com/59227194/194822987-39fd882b-20f3-45cc-88cd-0200eaeaa30f.jpeg)
 
-### How to use
+## How to use
 1. Scriptable をインストール
 	- 上記リンクから飛ぶか，App Store で検索してください
 2. スクリプトの作成
