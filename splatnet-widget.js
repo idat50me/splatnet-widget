@@ -196,6 +196,23 @@ async function get_gearinfo() {
 	return gearinfo;
 }
 
+function create_small_widget() {
+	const widget = new ListWidget();
+	const textStack = widget.addStack();
+	textStack.addSpacer();
+	let textEle;
+	if(config.widgetFamily === "small") {
+		textEle = textStack.addText("サイズを\n大(4x4)にして\n利用して\nください．");
+		textEle.font = Font.systemFont(16);
+	}
+	else {
+		textEle = textStack.addText("ウィジェットサイズを大(4x4)にして\n利用してください．");
+	}
+	textEle.centerAlignText();
+	textStack.addSpacer();
+	return widget;
+}
+
 async function create_widget() {
 	const widget = new ListWidget();
 	widget.addSpacer();
@@ -289,12 +306,20 @@ async function create_widget() {
 (async function() {
 	const abs_parent_path = FILE_MANAGER.joinPath(FILE_MANAGER.documentsDirectory(), PARENT_DIR);
 	FILE_MANAGER.createDirectory(abs_parent_path, true);
-	const widget = await create_widget();
 	if(config.runsInWidget) {
-		Script.setWidget(widget);
+		if(config.widgetFamily === "small" || config.widgetFamily === "medium") {
+			const widget = create_small_widget();
+			Script.setWidget(widget);
+		}
+		else {
+			const widget = await create_widget();
+			Script.setWidget(widget);
+		}
 	}
 	else {
-		widget.presentLarge(); // for debug
+		// for debugging
+		const widget = create_small_widget();
+		widget.presentSmall();
 	}
 
 	Script.complete();
