@@ -61,7 +61,10 @@ function save_file(filename, str) {
 	 * 		str: 保存する文字列
 	 */
 	const filepath = FILE_MANAGER.joinPath(FILE_MANAGER.documentsDirectory(), filename);
-	if(FILE_MANAGER.fileExists(filepath)) FILE_MANAGER.remove(filepath); // txtファイルは上書きされない？
+	if(FILE_MANAGER.fileExists(filepath)) {
+		FILE_MANAGER.downloadFileFromiCloud(filepath); // ローカル保存の場合は多分不要
+		FILE_MANAGER.remove(filepath); // txtファイルは上書きされないっぽかったので一度消す
+	}
 	FILE_MANAGER.writeString(filepath, str);
 }
 
@@ -144,6 +147,7 @@ async function create_powers_stack(gearStack, gear, limited=false) {
 		}
 	}
 	else {
+		powersStack.size = new Size(MAIN_WIDTH, MAIN_HEIGHT+SUB_HEIGHT);
 		powersStack.layoutVertically();
 		let req = new Request(gear.gear.primaryGearPower.image.url);
 		const mainImage = await req.loadImage();
@@ -196,6 +200,13 @@ async function get_gearinfo() {
 	return gearinfo;
 }
 
+function draw_border(element, color=Color.white()) {
+	// debug用 elementの領域確認
+	if(config.runsInWidget) return;
+	element.borderWidth = 1;
+	element.borderColor = color;
+}
+
 function create_small_widget() {
 	const widget = new ListWidget();
 	const textStack = widget.addStack();
@@ -215,8 +226,8 @@ function create_small_widget() {
 
 async function create_widget() {
 	const widget = new ListWidget();
-	widget.addSpacer();
 	widget.setPadding(WIDGET_PADDING, WIDGET_PADDING, WIDGET_PADDING, WIDGET_PADDING);
+	widget.spacing = WIDGET_PADDING;
 	const gearinfo = await get_gearinfo();
 	const now_date = new Date();
 
@@ -264,13 +275,14 @@ async function create_widget() {
 
 		pickupGearsStack.addSpacer();
 	}
-	widget.addSpacer();
+	// widget.addSpacer();
 
 
 	// limited gears
 	const limitedGears = gearinfo.data.gesotown.limitedGears;
 	for (let i = 0; i < 2; i++) {
 		const limitedStack = widget.addStack();
+		limitedStack.spacing = STACK_PADDING;
 		for (let j = 0; j < 3; j++) {
 			const gear = limitedGears[i*3 + j];
 			const gearStack = limitedStack.addStack();
@@ -278,26 +290,30 @@ async function create_widget() {
 			gearStack.setPadding(STACK_PADDING, STACK_PADDING, STACK_PADDING, STACK_PADDING);
 			gearStack.cornerRadius = STACK_PADDING;
 			gearStack.layoutVertically();
+			gearStack.centerAlignContent();
+			draw_border(gearStack, Color.cyan());
 
 			// remaining time
 			const endtime = gear.saleEndTime;
 			const remain_min = remain_mimutes(now_date, new Date(endtime));
 			const remainStack = gearStack.addStack();
+			//remainStack.setPadding(STACK_PADDING, STACK_PADDING, 0, STACK_PADDING);
 			remainStack.addSpacer();
 			const remainEle = remainStack.addText(remain_min >= 60 ? `${Math.floor(remain_min / 60)}h${remain_min % 60}m` : `${remain_min}m`);
 			remainEle.textColor = Color.white();
 			remainEle.font = Font.systemFont(13);
 
 			const limitedGearStack = gearStack.addStack();
+			//limitedGearStack.setPadding(0, STACK_PADDING, STACK_PADDING, STACK_PADDING);
 			limitedGearStack.centerAlignContent();
+			draw_border(limitedGearStack, Color.red());
 			//gear image
 			const gearImageEle = await create_gear_image_element(limitedGearStack, gear);
 			// power image
 			const powersStack = await create_powers_stack(limitedGearStack, gear, true);
-
-			if(j < 2) limitedStack.addSpacer();
+			draw_border(gearImageEle);
+			draw_border(powersStack);
 		}
-		widget.addSpacer();
 	}
 	
 	return widget;
@@ -318,8 +334,8 @@ async function create_widget() {
 	}
 	else {
 		// for debugging
-		const widget = create_small_widget();
-		widget.presentSmall();
+		const widget = await create_widget();
+		widget.presentLarge();
 	}
 
 	Script.complete();
