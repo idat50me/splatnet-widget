@@ -1,11 +1,9 @@
-// Variables used by Scriptable.
-// These must be at the very top of the file. Do not edit.
-// icon-color: purple; icon-glyph: magic;
 /**
  * splatnet-widget for splatoon3
  * author: @idat_50me
  * 
- * data source: splatoon3.ink
+ * data source: https://splatoon3.ink/
+ *              https://splatoonwiki.org/wiki/
  */
 
 const INK_URL = "https://splatoon3.ink/data/gear.json"
@@ -15,35 +13,173 @@ const PARENT_DIR = "splatnet-widget/";
 const UPD_DATE_FILENAME = "splatnet-widget/update_date.txt";
 const GEARINFO_FILENAME = "splatnet-widget/gearinfo.json";
 
+const WIDGET_BGCOLOR = "1a1a1a"; // ウィジェットの背景色
+const STACK_BGCOLOR = "262626"; // ギアstackの背景色
 
-// image size
-const GEAR_HEIGHT = 65;
+const WIDGET_PADDING = 10;
+const STACK_PADDING = 6;
+const GEAR_HEIGHT = 60;
 const GEAR_WIDTH = GEAR_HEIGHT;
-const POWER_HEIGHT = 25;
-const POWER_WIDTH = GEAR_WIDTH;
-const SUBPOWER_HEIGHT = 10;
-const SUBPOWER_WIDTH = SUBPOWER_HEIGHT;
+const POWERS_HEIGHT = 24;
+const POWERS_WIDTH = GEAR_WIDTH;
+const MAIN_HEIGHT = 24;
+const MAIN_WIDTH = MAIN_HEIGHT;
+const SUB_HEIGHT = 8;
+const SUB_WIDTH = SUB_HEIGHT;
 
+const brandJP = {
+	"amiibo": "amiibo",
+	"Annaki": "アナアキ",
+	"Barazushi": "バラズシ",
+	"Cuttlegear": "アタリメイド",
+	"Emberz": "シチリン",
+	"Emperry": "エンペリー",
+	"Firefin": "ホッコリー",
+	"Forge": "フォーリマ",
+	"Grizzco": "クマサン商会",
+	"Inkline": "シグレニ",
+	"Krak-On": "クラーゲス",
+	"Rockenberg": "ロッケンベルグ",
+	"Skalop": "ホタックス",
+	"Splash Mob": "ジモン",
+	"SquidForce": "バトロイカ",
+	"Takoroka": "ヤコ",
+	"Tentatek": "アロメ",
+	"Toni Kensa": "タタキケンサキ",
+	"Zekko": "エゾッコ",
+	"Zink": "アイロニック"
+};
+
+
+let unknownImage;
 
 function save_file(filename, str) {
-	// filenameにstrを保存
+	/**filenameにstrを保存する
+	 * 
+	 * args:
+	 * 		filename: 保存先のファイル
+	 * 		str: 保存する文字列
+	 */
 	const filepath = FILE_MANAGER.joinPath(FILE_MANAGER.documentsDirectory(), filename);
 	if(FILE_MANAGER.fileExists(filepath)) FILE_MANAGER.remove(filepath); // txtファイルは上書きされない？
 	FILE_MANAGER.writeString(filepath, str);
 }
 
 function load_file(filename) {
+	/**filenameの情報を返す
+	 * 
+	 * args:
+	 * 		filename: ファイル名
+	 * 
+	 * return:
+	 * 		str (String)
+	 */
 	// filenameの情報を返す
 	const filepath = FILE_MANAGER.joinPath(FILE_MANAGER.documentsDirectory(), filename);
-	return FILE_MANAGER.fileExists(filepath) ? FILE_MANAGER.readString(filepath) : "";
+	let str = "";
+	if(FILE_MANAGER.fileExists(filepath)) {
+		FILE_MANAGER.downloadFileFromiCloud(filepath); // ローカル保存の場合は多分不要
+		str = FILE_MANAGER.readString(filepath);
+	}
+	return str;
+}
+
+function power_stack_setting(powersStack, powerImage, width, height) {
+	/**powersStackにギアパワー単体のStackを追加する
+	 * 
+	 * args:
+	 * 		powersStack: ギアパワー全体のStack
+	 * 		powerImage: ギアパワーのimage
+	 * 		width: Stackの幅
+	 * 		height: Stackの高さ
+	 * 
+	 * return:
+	 * 		powerStack (WidgetStack): ギアパワー単体のStack
+	 */
+	const powerStack = powersStack.addStack();
+	powerStack.size = new Size(width, height);
+	powerStack.backgroundColor = Color.black();
+	powerStack.cornerRadius = Math.min(width, height) / 2;
+	powerStack.addImage(powerImage);
+	return powerStack;
+}
+
+async function create_gear_image_element(gearStack, gear) {
+	/**gearStackにギア画像のelementを追加する
+	 * 
+	 * args:
+	 * 		gearStack: ギアStack
+	 * 		gear: ギア情報のjson
+	 * 
+	 * return:
+	 * 		gearImageEle (WidgetImage): ギア画像のElement
+	 */
+	const req = new Request(gear.gear.image.url);
+	const gearImage = await req.loadImage();
+	const gearImageEle = gearStack.addImage(gearImage);
+	gearImageEle.imageSize = new Size(GEAR_WIDTH, GEAR_HEIGHT);
+	return gearImageEle;
+}
+
+async function create_powers_stack(gearStack, gear, limited=false) {
+	/**gearStackにギアパワーStackを追加する
+	 * 
+	 * args:
+	 * 		gearStack: ギアStack
+	 * 		gear: ギア情報のjson
+	 * 		limited: limited仕様の画像配置
+	 * 
+	 * return:
+	 * 		powersStack (WidgetStack): ギアパワー全体のStack
+	 */
+	const powersStack = gearStack.addStack();
+	if(!limited) {
+		powersStack.bottomAlignContent();
+		powersStack.size = new Size(POWERS_WIDTH, POWERS_HEIGHT);
+		let req = new Request(gear.gear.primaryGearPower.image.url);
+		const mainImage = await req.loadImage();
+		const mainImageStack = power_stack_setting(powersStack, mainImage, MAIN_WIDTH, MAIN_HEIGHT);
+		for(let i = 0; i < gear.gear.additionalGearPowers.length; i++) {
+			const subImageStack = power_stack_setting(powersStack, unknownImage, SUB_WIDTH, SUB_HEIGHT);
+		}
+	}
+	else {
+		powersStack.layoutVertically();
+		let req = new Request(gear.gear.primaryGearPower.image.url);
+		const mainImage = await req.loadImage();
+		const mainImageStack = power_stack_setting(powersStack, mainImage, MAIN_WIDTH, MAIN_HEIGHT);
+		const subPowersStack = powersStack.addStack();
+		for(let i = 0; i < gear.gear.additionalGearPowers.length; i++) {
+			const subImageStack = power_stack_setting(subPowersStack, unknownImage, SUB_WIDTH, SUB_HEIGHT);
+		}
+	}
+	return powersStack;
+}
+
+function remain_mimutes(now_time, end_time) {
+	/**end_timeとnow_timeの差分を分単位で返す
+	 * 
+	 * args:
+	 * 		now_time: 現在時刻
+	 * 		end_time: 終了時刻
+	 * 
+	 * return:
+	 * 		(number)
+	 */
+	return Math.floor(end_time / (1000*60)) - Math.floor(now_time / (1000*60));
 }
 
 async function get_gearinfo() {
-	// 販売中のギア情報をjson形式で返す
+	/**販売中のギア情報を返す
+	 * 
+	 * return:
+	 * 		gearinfo (json): 販売中のギア情報
+	 */
 	let lstupd = load_file(UPD_DATE_FILENAME);
 	let gearinfo = {};
 
 	if(lstupd === "" || Math.floor(new Date() / (1000*60*60)) - Math.floor(new Date(lstupd) / (1000*60*60)) > 0) {
+		// 最終更新日時から00分をまたいでいたらsplatoon3.inkにjsonを取りに行く
 		const req = new Request(INK_URL);
 		gearinfo = await req.loadJSON();
 
@@ -52,6 +188,7 @@ async function get_gearinfo() {
 		save_file(GEARINFO_FILENAME, JSON.stringify(gearinfo));
 	}
 	else {
+		// 取得したばかりならiCloud( or ローカル)にある情報を参照
 		const filedata = load_file(GEARINFO_FILENAME);
 		gearinfo = JSON.parse(filedata);
 	}
@@ -61,76 +198,104 @@ async function get_gearinfo() {
 
 async function create_widget() {
 	const widget = new ListWidget();
+	widget.addSpacer();
+	widget.setPadding(WIDGET_PADDING, WIDGET_PADDING, WIDGET_PADDING, WIDGET_PADDING);
 	const gearinfo = await get_gearinfo();
 	const now_date = new Date();
 
+	// unknown power image
+	let req = new Request(gearinfo.data.gesotown.limitedGears[0].gear.additionalGearPowers[0].image.url);
+	unknownImage = await req.loadImage();
+
 	// background
-	widget.backgroundColor = new Color("1a1a1a");
+	widget.backgroundColor = new Color(WIDGET_BGCOLOR);
 
 	// pickup brand
 	const pickup = gearinfo.data.gesotown.pickupBrand;
 	const pickupGears = pickup.brandGears;
-
-	/// remaining time
-	const pickup_endtime = pickup.saleEndTime;
-	const remain_min = Math.floor(new Date(pickup_endtime) / (1000*60)) - Math.floor(now_date / (1000*60));
-	const pickupRemainStack = widget.addText(`${Math.floor(remain_min / 60)}h${remain_min % 60}m`);
-	pickupRemainStack.rightAlignText();
-	pickupRemainStack.textColor = Color.white();
-	pickupRemainStack.font = Font.systemFont(13);
-	
 	const pickupStack = widget.addStack();
-	pickupStack.addSpacer();
+	pickupStack.backgroundColor = new Color(STACK_BGCOLOR);
+	pickupStack.setPadding(STACK_PADDING, STACK_PADDING, STACK_PADDING, STACK_PADDING);
+	pickupStack.cornerRadius = STACK_PADDING;
+	pickupStack.layoutVertically();
+
+	/// header
+	const pickup_brand = brandJP[pickup.brand.name];
+	const pickup_endtime = pickup.saleEndTime;
+	const remain_min = remain_mimutes(now_date, new Date(pickup_endtime));
+	const pickupHeader = pickupStack.addStack();
+	const pickupBrandNameEle = pickupHeader.addText(`Pick Up: ${pickup_brand}`);
+	pickupBrandNameEle.textColor = Color.white();
+	pickupBrandNameEle.font = Font.systemFont(13);
+	pickupHeader.addSpacer();
+	const pickupRemainEle = pickupHeader.addText(remain_min >= 60 ? `${Math.floor(remain_min / 60)}h${remain_min % 60}m` : `${remain_min}m`);
+	pickupRemainEle.textColor = Color.white();
+	pickupRemainEle.font = Font.systemFont(13);
+	
+	/// gears
+	const pickupGearsStack = pickupStack.addStack();
+	pickupGearsStack.addSpacer();
 	for(const gear of pickupGears) {
-		console.log("gear: " + gear.gear.name);
-		const gearStack = pickupStack.addStack();
+		const gearStack = pickupGearsStack.addStack();
 		gearStack.layoutVertically();
 
 		// gear image
-		let req = new Request(gear.gear.image.url);
-		const gearImage = await req.loadImage();
-		console.log("load image");
-		const gearImageEle = gearStack.addImage(gearImage);
-		gearImageEle.imageSize = new Size(GEAR_WIDTH, GEAR_HEIGHT);
+		const gearImageEle = await create_gear_image_element(gearStack, gear);
 
 		// power image
-		const powerStack = gearStack.addStack();
-		powerStack.bottomAlignContent();
-		powerStack.size = new Size(POWER_WIDTH, POWER_HEIGHT);
-		req = new Request(gear.gear.primaryGearPower.image.url);
-		const mainImage = await req.loadImage();
-		const mainImageEle = powerStack.addImage(mainImage);
-		for(const subpower of gear.gear.additionalGearPowers) {
-			req = new Request(subpower.image.url);
-			const subImage = await req.loadImage();
-			const subImageEle = powerStack.addImage(subImage);
-			subImageEle.imageSize = new Size(SUBPOWER_WIDTH, SUBPOWER_HEIGHT);
-		}
-		pickupStack.addSpacer();
+		const powersStack = await create_powers_stack(gearStack, gear);
+
+		pickupGearsStack.addSpacer();
 	}
+	widget.addSpacer();
 
 
-	console.log("created widget");
+	// limited gears
+	const limitedGears = gearinfo.data.gesotown.limitedGears;
+	for (let i = 0; i < 2; i++) {
+		const limitedStack = widget.addStack();
+		for (let j = 0; j < 3; j++) {
+			const gear = limitedGears[i*3 + j];
+			const gearStack = limitedStack.addStack();
+			gearStack.backgroundColor = new Color(STACK_BGCOLOR);
+			gearStack.setPadding(STACK_PADDING, STACK_PADDING, STACK_PADDING, STACK_PADDING);
+			gearStack.cornerRadius = STACK_PADDING;
+			gearStack.layoutVertically();
+
+			// remaining time
+			const endtime = gear.saleEndTime;
+			const remain_min = remain_mimutes(now_date, new Date(endtime));
+			const remainStack = gearStack.addStack();
+			remainStack.addSpacer();
+			const remainEle = remainStack.addText(remain_min >= 60 ? `${Math.floor(remain_min / 60)}h${remain_min % 60}m` : `${remain_min}m`);
+			remainEle.textColor = Color.white();
+			remainEle.font = Font.systemFont(13);
+
+			const limitedGearStack = gearStack.addStack();
+			limitedGearStack.centerAlignContent();
+			//gear image
+			const gearImageEle = await create_gear_image_element(limitedGearStack, gear);
+			// power image
+			const powersStack = await create_powers_stack(limitedGearStack, gear, true);
+
+			if(j < 2) limitedStack.addSpacer();
+		}
+		widget.addSpacer();
+	}
+	
 	return widget;
-}
-
-
-//const d = new Date(2022,9,9,17,0,0);
-//const lstupd = 0;
-//console.log(d, lstupd);
-//console.log(Math.floor(d / (1000*60*60)) - Math.floor(lstupd / (1000*60*60)));
-
-async function func() {
-	const req = new Request(INK_URL);
-	let gearinfo = await req.loadJSON();
-	console.log(gearinfo);
 }
 
 (async function() {
 	const abs_parent_path = FILE_MANAGER.joinPath(FILE_MANAGER.documentsDirectory(), PARENT_DIR);
 	FILE_MANAGER.createDirectory(abs_parent_path, true);
 	const widget = await create_widget();
-	Script.setWidget(widget);
+	if(config.runsInWidget) {
+		Script.setWidget(widget);
+	}
+	else {
+		widget.presentLarge(); // for debug
+	}
 
 	Script.complete();
 })();
