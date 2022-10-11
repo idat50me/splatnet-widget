@@ -4,6 +4,7 @@
  * 
  * data source: https://splatoon3.ink/
  *              https://splatoonwiki.org/wiki/
+ *              https://gist.github.com/phoebethewitch/4b628026cd98b08f895f630f11bcd3c0
  */
 
 
@@ -15,6 +16,7 @@ const HEADER_COLOR = Color.white(); // ブランド名，販売残り時間の�
 /* -------------- */
 
 const INK_URL = "https://splatoon3.ink/data/gear.json"
+const GESOGEAR_URL = "com.nintendo.znca://znca/game/4834290508791808?p=%2Fgesotown%2F";
 
 const FILE_MANAGER = FileManager.iCloud(); // .local() にするとローカルに保存する
 const PARENT_DIR = "splatnet-widget/";
@@ -274,6 +276,7 @@ async function create_widget() {
 	for(const gear of pickupGears) {
 		const gearStack = pickupGearsStack.addStack();
 		gearStack.layoutVertically();
+		gearStack.url = GESOGEAR_URL + gear.id;
 
 		// gear image
 		const gearImageEle = await create_gear_image_element(gearStack, gear);
@@ -299,6 +302,7 @@ async function create_widget() {
 			gearStack.cornerRadius = STACK_PADDING;
 			gearStack.layoutVertically();
 			gearStack.centerAlignContent();
+			gearStack.url = GESOGEAR_URL + gear.id;
 			draw_border(gearStack, Color.cyan());
 
 			// remaining time
