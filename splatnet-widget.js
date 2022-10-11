@@ -4,17 +4,26 @@
  * 
  * data source: https://splatoon3.ink/
  *              https://splatoonwiki.org/wiki/
+ *              https://gist.github.com/phoebethewitch/4b628026cd98b08f895f630f11bcd3c0
  */
 
+
+/* --- OPTION --- */
+const WIDGET_BGCOLOR = "1a1a1a"; // ウィジェットの背景色
+const STACK_BGCOLOR = "262626"; // ギアstackの背景色
+const POWER_BGCOLOR = Color.black(); // ギアパワーの背景色
+const HEADER_COLOR = Color.white(); // ブランド名，販売残り時間の文字色
+/* -------------- */
+
 const INK_URL = "https://splatoon3.ink/data/gear.json"
+const GESOGEAR_URL = "com.nintendo.znca://znca/game/4834290508791808?p=%2Fgesotown%2F";
 
 const FILE_MANAGER = FileManager.iCloud(); // .local() にするとローカルに保存する
 const PARENT_DIR = "splatnet-widget/";
 const UPD_DATE_FILENAME = "splatnet-widget/update_date.txt";
 const GEARINFO_FILENAME = "splatnet-widget/gearinfo.json";
 
-const WIDGET_BGCOLOR = "1a1a1a"; // ウィジェットの背景色
-const STACK_BGCOLOR = "262626"; // ギアstackの背景色
+const HEADER_FONTSIZE = 13;
 
 const WIDGET_PADDING = 10;
 const STACK_PADDING = 6;
@@ -101,7 +110,7 @@ function power_stack_setting(powersStack, powerImage, width, height) {
 	 */
 	const powerStack = powersStack.addStack();
 	powerStack.size = new Size(width, height);
-	powerStack.backgroundColor = Color.black();
+	powerStack.backgroundColor = POWER_BGCOLOR;
 	powerStack.cornerRadius = Math.min(width, height) / 2;
 	powerStack.addImage(powerImage);
 	return powerStack;
@@ -214,7 +223,8 @@ function create_small_widget() {
 	let textEle;
 	if(config.widgetFamily === "small") {
 		textEle = textStack.addText("サイズを\n大(4x4)にして\n利用して\nください．");
-		textEle.font = Font.systemFont(16);
+		textEle.minimumScaleFactor = 0.7;
+		textEle.lineLimit = 4;
 	}
 	else {
 		textEle = textStack.addText("ウィジェットサイズを大(4x4)にして\n利用してください．");
@@ -253,12 +263,12 @@ async function create_widget() {
 	const remain_min = remain_mimutes(now_date, new Date(pickup_endtime));
 	const pickupHeader = pickupStack.addStack();
 	const pickupBrandNameEle = pickupHeader.addText(`Pick Up: ${pickup_brand}`);
-	pickupBrandNameEle.textColor = Color.white();
-	pickupBrandNameEle.font = Font.systemFont(13);
+	pickupBrandNameEle.textColor = HEADER_COLOR;
+	pickupBrandNameEle.font = Font.systemFont(HEADER_FONTSIZE);
 	pickupHeader.addSpacer();
 	const pickupRemainEle = pickupHeader.addText(remain_min >= 60 ? `${Math.floor(remain_min / 60)}h${remain_min % 60}m` : `${remain_min}m`);
-	pickupRemainEle.textColor = Color.white();
-	pickupRemainEle.font = Font.systemFont(13);
+	pickupRemainEle.textColor = HEADER_COLOR;
+	pickupRemainEle.font = Font.systemFont(HEADER_FONTSIZE);
 	
 	/// gears
 	const pickupGearsStack = pickupStack.addStack();
@@ -266,6 +276,7 @@ async function create_widget() {
 	for(const gear of pickupGears) {
 		const gearStack = pickupGearsStack.addStack();
 		gearStack.layoutVertically();
+		gearStack.url = GESOGEAR_URL + gear.id;
 
 		// gear image
 		const gearImageEle = await create_gear_image_element(gearStack, gear);
@@ -291,6 +302,7 @@ async function create_widget() {
 			gearStack.cornerRadius = STACK_PADDING;
 			gearStack.layoutVertically();
 			gearStack.centerAlignContent();
+			gearStack.url = GESOGEAR_URL + gear.id;
 			draw_border(gearStack, Color.cyan());
 
 			// remaining time
@@ -300,8 +312,8 @@ async function create_widget() {
 			//remainStack.setPadding(STACK_PADDING, STACK_PADDING, 0, STACK_PADDING);
 			remainStack.addSpacer();
 			const remainEle = remainStack.addText(remain_min >= 60 ? `${Math.floor(remain_min / 60)}h${remain_min % 60}m` : `${remain_min}m`);
-			remainEle.textColor = Color.white();
-			remainEle.font = Font.systemFont(13);
+			remainEle.textColor = HEADER_COLOR;
+			remainEle.font = Font.systemFont(HEADER_FONTSIZE);
 
 			const limitedGearStack = gearStack.addStack();
 			//limitedGearStack.setPadding(0, STACK_PADDING, STACK_PADDING, STACK_PADDING);
