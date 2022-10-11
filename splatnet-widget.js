@@ -221,7 +221,8 @@ function create_small_widget() {
 	let textEle;
 	if(config.widgetFamily === "small") {
 		textEle = textStack.addText("サイズを\n大(4x4)にして\n利用して\nください．");
-		textEle.font = Font.systemFont(16);
+		textEle.minimumScaleFactor = 0.7;
+		textEle.lineLimit = 4;
 	}
 	else {
 		textEle = textStack.addText("ウィジェットサイズを大(4x4)にして\n利用してください．");
