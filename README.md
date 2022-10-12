@@ -9,6 +9,7 @@ iOS App「[Scriptable](https://apps.apple.com/us/app/scriptable/id1405459188)」
 2. スクリプトの作成
 	- Scriptable を起動し，右上の **＋ボタン** を押す
 	- 新規スクリプト作成画面に移るので，ここに [splatnet-widget.js](https://github.com/idat50me/splatnet-widget/blob/main/splatnet-widget.js) の中身をコピペする
+		- コードの右上にある **Raw ボタン** を押すとコピーしやすいかも
 	- 上部の 「**Untitled Script 1**」を押して，適当にわかりやすい名前に変える
 3. ウィジェットの作成
 	- ホーム画面に戻り，Scriptable のウィジェット（大サイズ）を生成する
