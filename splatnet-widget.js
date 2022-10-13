@@ -13,6 +13,7 @@ const WIDGET_BGCOLOR = "1a1a1a"; // ウィジェットの背景色
 const STACK_BGCOLOR = "262626"; // ギアstackの背景色
 const POWER_BGCOLOR = Color.black(); // ギアパワーの背景色
 const HEADER_COLOR = Color.white(); // ブランド名，販売残り時間の文字色
+const HEADER_FONTSIZE = 12; // ブランド名，販売残り時間の文字サイズ
 /* -------------- */
 
 const INK_URL = "https://splatoon3.ink/data/gear.json"
@@ -22,8 +23,6 @@ const FILE_MANAGER = FileManager.iCloud(); // .local() にするとローカル�
 const PARENT_DIR = "splatnet-widget/";
 const UPD_DATE_FILENAME = "splatnet-widget/update_date.txt";
 const GEARINFO_FILENAME = "splatnet-widget/gearinfo.json";
-
-const HEADER_FONTSIZE = 13;
 
 const WIDGET_PADDING = 10;
 const STACK_PADDING = 6;
@@ -169,19 +168,6 @@ async function create_powers_stack(gearStack, gear, limited=false) {
 	return powersStack;
 }
 
-function remain_mimutes(now_time, end_time) {
-	/**end_timeとnow_timeの差分を分単位で返す
-	 * 
-	 * args:
-	 * 		now_time: 現在時刻
-	 * 		end_time: 終了時刻
-	 * 
-	 * return:
-	 * 		(number)
-	 */
-	return Math.floor(end_time / (1000*60)) - Math.floor(now_time / (1000*60));
-}
-
 async function get_gearinfo() {
 	/**販売中のギア情報を返す
 	 * 
@@ -240,6 +226,12 @@ async function create_widget() {
 	widget.spacing = WIDGET_PADDING;
 	const gearinfo = await get_gearinfo();
 	const now_date = new Date();
+	const now_date_after_1h = new Date(now_date.getTime() + 1000*60*60);
+	const next_refresh_date = new Date(now_date_after_1h.getFullYear(), now_date_after_1h.getMonth(), now_date_after_1h.getDate(), now_date_after_1h.getHours());
+	//console.log(now_date);
+	//console.log(now_date_after_1h);
+	//console.log(next_refresh_date);
+	widget.refreshAfterDate = next_refresh_date;
 
 	// unknown power image
 	let req = new Request(gearinfo.data.gesotown.limitedGears[0].gear.additionalGearPowers[0].image.url);
@@ -260,15 +252,17 @@ async function create_widget() {
 	/// header
 	const pickup_brand = brandJP[pickup.brand.name];
 	const pickup_endtime = pickup.saleEndTime;
-	const remain_min = remain_mimutes(now_date, new Date(pickup_endtime));
 	const pickupHeader = pickupStack.addStack();
 	const pickupBrandNameEle = pickupHeader.addText(`Pick Up: ${pickup_brand}`);
 	pickupBrandNameEle.textColor = HEADER_COLOR;
 	pickupBrandNameEle.font = Font.systemFont(HEADER_FONTSIZE);
 	pickupHeader.addSpacer();
-	const pickupRemainEle = pickupHeader.addText(remain_min >= 60 ? `${Math.floor(remain_min / 60)}h${remain_min % 60}m` : `${remain_min}m`);
+	const pickupRemainEle = pickupHeader.addDate(new Date(pickup_endtime));
 	pickupRemainEle.textColor = HEADER_COLOR;
-	pickupRemainEle.font = Font.systemFont(HEADER_FONTSIZE);
+	pickupRemainEle.font = Font.mediumMonospacedSystemFont(HEADER_FONTSIZE);
+	pickupRemainEle.applyTimerStyle();
+	pickupRemainEle.rightAlignText();
+	draw_border(pickupHeader);
 	
 	/// gears
 	const pickupGearsStack = pickupStack.addStack();
@@ -286,7 +280,7 @@ async function create_widget() {
 
 		pickupGearsStack.addSpacer();
 	}
-	// widget.addSpacer();
+	//widget.addSpacer();
 
 
 	// limited gears
@@ -307,19 +301,20 @@ async function create_widget() {
 
 			// remaining time
 			const endtime = gear.saleEndTime;
-			const remain_min = remain_mimutes(now_date, new Date(endtime));
 			const remainStack = gearStack.addStack();
 			//remainStack.setPadding(STACK_PADDING, STACK_PADDING, 0, STACK_PADDING);
 			remainStack.addSpacer();
-			const remainEle = remainStack.addText(remain_min >= 60 ? `${Math.floor(remain_min / 60)}h${remain_min % 60}m` : `${remain_min}m`);
+			const remainEle = remainStack.addDate(new Date(endtime));
 			remainEle.textColor = HEADER_COLOR;
-			remainEle.font = Font.systemFont(HEADER_FONTSIZE);
+			remainEle.font = Font.mediumMonospacedSystemFont(HEADER_FONTSIZE);
+			remainEle.applyTimerStyle();
+			remainEle.rightAlignText();
 
 			const limitedGearStack = gearStack.addStack();
 			//limitedGearStack.setPadding(0, STACK_PADDING, STACK_PADDING, STACK_PADDING);
 			limitedGearStack.centerAlignContent();
 			draw_border(limitedGearStack, Color.red());
-			//gear image
+			// gear image
 			const gearImageEle = await create_gear_image_element(limitedGearStack, gear);
 			// power image
 			const powersStack = await create_powers_stack(limitedGearStack, gear, true);
