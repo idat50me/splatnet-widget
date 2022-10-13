@@ -23,7 +23,7 @@ const PARENT_DIR = "splatnet-widget/";
 const UPD_DATE_FILENAME = "splatnet-widget/update_date.txt";
 const GEARINFO_FILENAME = "splatnet-widget/gearinfo.json";
 
-const HEADER_FONTSIZE = 13;
+const HEADER_FONTSIZE = 12;
 
 const WIDGET_PADDING = 10;
 const STACK_PADDING = 6;
