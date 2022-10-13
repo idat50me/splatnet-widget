@@ -1,3 +1,4 @@
+.vscode/
+widget_image/
 *.json
-widget_image.jpeg
 scriptable.d.ts
