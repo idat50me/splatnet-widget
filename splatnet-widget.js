@@ -13,6 +13,7 @@ const WIDGET_BGCOLOR = "1a1a1a"; // ウィジェットの背景色
 const STACK_BGCOLOR = "262626"; // ギアstackの背景色
 const POWER_BGCOLOR = Color.black(); // ギアパワーの背景色
 const HEADER_COLOR = Color.white(); // ブランド名，販売残り時間の文字色
+const HEADER_FONTSIZE = 12; // ブランド名，販売残り時間の文字サイズ
 /* -------------- */
 
 const INK_URL = "https://splatoon3.ink/data/gear.json"
@@ -22,8 +23,6 @@ const FILE_MANAGER = FileManager.iCloud(); // .local() にするとローカル�
 const PARENT_DIR = "splatnet-widget/";
 const UPD_DATE_FILENAME = "splatnet-widget/update_date.txt";
 const GEARINFO_FILENAME = "splatnet-widget/gearinfo.json";
-
-const HEADER_FONTSIZE = 12;
 
 const WIDGET_PADDING = 10;
 const STACK_PADDING = 6;
@@ -227,6 +226,12 @@ async function create_widget() {
 	widget.spacing = WIDGET_PADDING;
 	const gearinfo = await get_gearinfo();
 	const now_date = new Date();
+	const now_date_after_1h = new Date(now_date.getTime() + 1000*60*60);
+	const next_refresh_date = new Date(now_date_after_1h.getFullYear(), now_date_after_1h.getMonth(), now_date_after_1h.getDate(), now_date_after_1h.getHours());
+	//console.log(now_date);
+	//console.log(now_date_after_1h);
+	//console.log(next_refresh_date);
+	widget.refreshAfterDate = next_refresh_date;
 
 	// unknown power image
 	let req = new Request(gearinfo.data.gesotown.limitedGears[0].gear.additionalGearPowers[0].image.url);
@@ -275,7 +280,7 @@ async function create_widget() {
 
 		pickupGearsStack.addSpacer();
 	}
-	// widget.addSpacer();
+	//widget.addSpacer();
 
 
 	// limited gears
@@ -309,7 +314,7 @@ async function create_widget() {
 			//limitedGearStack.setPadding(0, STACK_PADDING, STACK_PADDING, STACK_PADDING);
 			limitedGearStack.centerAlignContent();
 			draw_border(limitedGearStack, Color.red());
-			//gear image
+			// gear image
 			const gearImageEle = await create_gear_image_element(limitedGearStack, gear);
 			// power image
 			const powersStack = await create_powers_stack(limitedGearStack, gear, true);
