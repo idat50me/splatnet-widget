@@ -68,10 +68,10 @@ const DFormat = new DateFormatter();
 DFormat.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
 let runtimeLogText = load_file(RUNTIME_LOG_FILENAME);
 if(config.runsInWidget) {
-	save_file(RUNTIME_LOG_FILENAME, `${runtimeLogText}\n[Widget]     ${DFormat.string(runtime)}`);
+	save_file(RUNTIME_LOG_FILENAME, `${runtimeLogText}\n[Widget,     ${`${Device.systemName()} ${Device.systemVersion()}]`.padEnd(16)} ${DFormat.string(runtime)}`);
 }
 else {
-	save_file(RUNTIME_LOG_FILENAME, `${runtimeLogText}\n[Scriptable] ${DFormat.string(runtime)}`);
+	save_file(RUNTIME_LOG_FILENAME, `${runtimeLogText}\n[Scriptable, ${`${Device.systemName()} ${Device.systemVersion()}]`.padEnd(16)} ${DFormat.string(runtime)}`);
 }
 
 function save_file(filename, str, deleteFile=false) {
