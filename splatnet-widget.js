@@ -37,6 +37,8 @@ const MAIN_HEIGHT = 24;
 const MAIN_WIDTH = MAIN_HEIGHT;
 const SUB_HEIGHT = 8;
 const SUB_WIDTH = SUB_HEIGHT;
+const BRAND_HEIGHT = 20;
+const BRAND_WIDTH = BRAND_HEIGHT;
 
 const brandJP = {
 	"amiibo": "amiibo",
@@ -239,7 +241,7 @@ function create_small_widget() {
 async function create_widget() {
 	const widget = new ListWidget();
 	widget.setPadding(WIDGET_PADDING, WIDGET_PADDING, WIDGET_PADDING, WIDGET_PADDING);
-	widget.spacing = WIDGET_PADDING;
+	widget.spacing = STACK_PADDING;
 	const gearinfo = await get_gearinfo();
 	const runtime_after = new Date(runtime.getTime() + 1000*60*60);
 	if(runtime_after.getHours() % 2 == 0) runtime_after.setHours(runtime_after.getHours()+1); // 奇数時間に更新
@@ -317,11 +319,17 @@ async function create_widget() {
 			draw_border(gearStack, Color.cyan());
 
 			// remaining time
+			const headerStack = gearStack.addStack();
+			//headerStack.setPadding(STACK_PADDING, STACK_PADDING, 0, STACK_PADDING);
+			req = new Request(gear.gear.brand.image.url);
+			const brandImage = await req.loadImage();
+			const brandImageStack = headerStack.addStack();
+			brandImageStack.backgroundColor = Color.white();
+			brandImageStack.size = new Size(BRAND_WIDTH, BRAND_HEIGHT);
+			const brandImageEle = brandImageStack.addImage(brandImage);
+			headerStack.addSpacer();
 			const endtime = gear.saleEndTime;
-			const remainStack = gearStack.addStack();
-			//remainStack.setPadding(STACK_PADDING, STACK_PADDING, 0, STACK_PADDING);
-			remainStack.addSpacer();
-			const remainEle = remainStack.addDate(new Date(endtime));
+			const remainEle = headerStack.addDate(new Date(endtime));
 			remainEle.textColor = HEADER_COLOR;
 			remainEle.font = Font.mediumMonospacedSystemFont(HEADER_FONTSIZE);
 			remainEle.applyTimerStyle();
