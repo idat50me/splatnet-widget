@@ -1,6 +1,7 @@
 /**
  * splatnet-widget for splatoon3
  * author: @idat_50me
+ * https://github.com/idat50me/splatnet-widget
  * 
  * data source: https://splatoon3.ink/
  *              https://splatoonwiki.org/wiki/
@@ -22,6 +23,8 @@ const GESOGEAR_URL = "com.nintendo.znca://znca/game/4834290508791808?p=%2Fgesoto
 const FILE_MANAGER = FileManager.iCloud(); // .local() にするとローカルに保存する
 const PARENT_DIR = "splatnet-widget/";
 const UPD_DATE_FILENAME = "splatnet-widget/update_date.txt";
+const UPD_DATE_LOG_FILENAME = "splatnet-widget/update_log.txt";
+const RUNTIME_LOG_FILENAME = "splatnet-widget/runtime_log.txt";
 const GEARINFO_FILENAME = "splatnet-widget/gearinfo.json";
 
 const WIDGET_PADDING = 10;
@@ -60,8 +63,18 @@ const brandJP = {
 
 
 let unknownImage;
+const runtime = new Date();
+const DFormat = new DateFormatter();
+DFormat.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
+let runtimeLogText = load_file(RUNTIME_LOG_FILENAME);
+if(config.runsInWidget) {
+	save_file(RUNTIME_LOG_FILENAME, `${runtimeLogText}\n[Widget,     ${`${Device.systemName()} ${Device.systemVersion()}]`.padEnd(16)} ${DFormat.string(runtime)}`);
+}
+else {
+	save_file(RUNTIME_LOG_FILENAME, `${runtimeLogText}\n[Scriptable, ${`${Device.systemName()} ${Device.systemVersion()}]`.padEnd(16)} ${DFormat.string(runtime)}`);
+}
 
-function save_file(filename, str) {
+function save_file(filename, str, deleteFile=false) {
 	/**filenameにstrを保存する
 	 * 
 	 * args:
@@ -71,7 +84,7 @@ function save_file(filename, str) {
 	const filepath = FILE_MANAGER.joinPath(FILE_MANAGER.documentsDirectory(), filename);
 	if(FILE_MANAGER.fileExists(filepath)) {
 		FILE_MANAGER.downloadFileFromiCloud(filepath); // ローカル保存の場合は多分不要
-		FILE_MANAGER.remove(filepath); // txtファイルは上書きされないっぽかったので一度消す
+		if(deleteFile) FILE_MANAGER.remove(filepath); // 上書きが必要なファイルは一旦removeする
 	}
 	FILE_MANAGER.writeString(filepath, str);
 }
@@ -177,14 +190,17 @@ async function get_gearinfo() {
 	let lstupd = load_file(UPD_DATE_FILENAME);
 	let gearinfo = {};
 
-	if(lstupd === "" || Math.floor(new Date() / (1000*60*60)) - Math.floor(new Date(lstupd) / (1000*60*60)) > 0) {
+	if(lstupd === "" || Math.floor(runtime / (1000*60*60)) - Math.floor(new Date(lstupd) / (1000*60*60)) > 0) {
 		// 最終更新日時から00分をまたいでいたらsplatoon3.inkにjsonを取りに行く
 		const req = new Request(INK_URL);
 		gearinfo = await req.loadJSON();
 
-		lstupd = new Date().toISOString();
-		save_file(UPD_DATE_FILENAME, lstupd);
-		save_file(GEARINFO_FILENAME, JSON.stringify(gearinfo));
+		lstupd = runtime.toISOString();
+		save_file(UPD_DATE_FILENAME, lstupd, true);
+		save_file(GEARINFO_FILENAME, JSON.stringify(gearinfo), true);
+
+		let updLogText = load_file(UPD_DATE_LOG_FILENAME);
+		save_file(UPD_DATE_LOG_FILENAME, updLogText+"\n"+DFormat.string(runtime));
 	}
 	else {
 		// 取得したばかりならiCloud( or ローカル)にある情報を参照
@@ -225,12 +241,12 @@ async function create_widget() {
 	widget.setPadding(WIDGET_PADDING, WIDGET_PADDING, WIDGET_PADDING, WIDGET_PADDING);
 	widget.spacing = WIDGET_PADDING;
 	const gearinfo = await get_gearinfo();
-	const now_date = new Date();
-	const now_date_after_1h = new Date(now_date.getTime() + 1000*60*60);
-	const next_refresh_date = new Date(now_date_after_1h.getFullYear(), now_date_after_1h.getMonth(), now_date_after_1h.getDate(), now_date_after_1h.getHours());
-	//console.log(now_date);
-	//console.log(now_date_after_1h);
-	//console.log(next_refresh_date);
+	const runtime_after = new Date(runtime.getTime() + 1000*60*60);
+	if(runtime_after.getHours() % 2 == 0) runtime_after.setHours(runtime_after.getHours()+1); // 奇数時間に更新
+	const next_refresh_date = new Date(runtime_after.getFullYear(), runtime_after.getMonth(), runtime_after.getDate(), runtime_after.getHours());
+	console.log(DFormat.string(runtime));
+	console.log(DFormat.string(runtime_after));
+	console.log(DFormat.string(next_refresh_date));
 	widget.refreshAfterDate = next_refresh_date;
 
 	// unknown power image

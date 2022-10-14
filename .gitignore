@@ -2,3 +2,4 @@
 widget_image/
 *.json
 scriptable.d.ts
+splatnet-widget-*.js
