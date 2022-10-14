@@ -243,7 +243,8 @@ async function create_widget() {
 	const gearinfo = await get_gearinfo();
 	const runtime_after = new Date(runtime.getTime() + 1000*60*60);
 	if(runtime_after.getHours() % 2 == 0) runtime_after.setHours(runtime_after.getHours()+1); // 奇数時間に更新
-	const next_refresh_date = new Date(runtime_after.getFullYear(), runtime_after.getMonth(), runtime_after.getDate(), runtime_after.getHours());
+	// 時間ちょうどだと splatoon3.ink の更新が間に合っていないことがあるので30秒遅らせる
+	const next_refresh_date = new Date(runtime_after.getFullYear(), runtime_after.getMonth(), runtime_after.getDate(), runtime_after.getHours(), 0, 30);
 	console.log(DFormat.string(runtime));
 	console.log(DFormat.string(runtime_after));
 	console.log(DFormat.string(next_refresh_date));
