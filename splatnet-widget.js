@@ -1,6 +1,7 @@
 /**
  * splatnet-widget for splatoon3
  * author: @idat_50me
+ * https://github.com/idat50me/splatnet-widget
  * 
  * data source: https://splatoon3.ink/
  *              https://splatoonwiki.org/wiki/
@@ -23,6 +24,7 @@ const FILE_MANAGER = FileManager.iCloud(); // .local() にするとローカル�
 const PARENT_DIR = "splatnet-widget/";
 const UPD_DATE_FILENAME = "splatnet-widget/update_date.txt";
 const UPD_DATE_LOG_FILENAME = "splatnet-widget/update_log.txt";
+const RUNTIME_LOG_FILENAME = "splatnet-widget/runtime_log.txt";
 const GEARINFO_FILENAME = "splatnet-widget/gearinfo.json";
 
 const WIDGET_PADDING = 10;
@@ -64,6 +66,9 @@ let unknownImage;
 const runtime = new Date();
 const DFormat = new DateFormatter();
 DFormat.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
+
+let runtimeLogText = load_file(RUNTIME_LOG_FILENAME);
+save_file(RUNTIME_LOG_FILENAME, runtimeLogText+"\n"+DFormat.string(runtime));
 
 function save_file(filename, str) {
 	/**filenameにstrを保存する
