@@ -74,7 +74,7 @@ else {
 	save_file(RUNTIME_LOG_FILENAME, `${runtimeLogText}\n[Scriptable] ${DFormat.string(runtime)}`);
 }
 
-function save_file(filename, str) {
+function save_file(filename, str, deleteFile=false) {
 	/**filenameにstrを保存する
 	 * 
 	 * args:
@@ -84,7 +84,7 @@ function save_file(filename, str) {
 	const filepath = FILE_MANAGER.joinPath(FILE_MANAGER.documentsDirectory(), filename);
 	if(FILE_MANAGER.fileExists(filepath)) {
 		FILE_MANAGER.downloadFileFromiCloud(filepath); // ローカル保存の場合は多分不要
-		FILE_MANAGER.remove(filepath); // txtファイルは上書きされないっぽかったので一度消す
+		if(deleteFile) FILE_MANAGER.remove(filepath); // 上書きが必要なファイルは一旦removeする
 	}
 	FILE_MANAGER.writeString(filepath, str);
 }
@@ -196,8 +196,8 @@ async function get_gearinfo() {
 		gearinfo = await req.loadJSON();
 
 		lstupd = runtime.toISOString();
-		save_file(UPD_DATE_FILENAME, lstupd);
-		save_file(GEARINFO_FILENAME, JSON.stringify(gearinfo));
+		save_file(UPD_DATE_FILENAME, lstupd, true);
+		save_file(GEARINFO_FILENAME, JSON.stringify(gearinfo), true);
 
 		let updLogText = load_file(UPD_DATE_LOG_FILENAME);
 		save_file(UPD_DATE_LOG_FILENAME, updLogText+"\n"+DFormat.string(runtime));
