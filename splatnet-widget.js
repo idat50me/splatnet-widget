@@ -66,9 +66,13 @@ let unknownImage;
 const runtime = new Date();
 const DFormat = new DateFormatter();
 DFormat.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
-
 let runtimeLogText = load_file(RUNTIME_LOG_FILENAME);
-save_file(RUNTIME_LOG_FILENAME, runtimeLogText+"\n"+DFormat.string(runtime));
+if(config.runsInWidget) {
+	save_file(RUNTIME_LOG_FILENAME, `${runtimeLogText}\n[Widget]     ${DFormat.string(runtime)}`);
+}
+else {
+	save_file(RUNTIME_LOG_FILENAME, `${runtimeLogText}\n[Scriptable] ${DFormat.string(runtime)}`);
+}
 
 function save_file(filename, str) {
 	/**filenameにstrを保存する
