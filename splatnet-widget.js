@@ -14,7 +14,8 @@ const WIDGET_BGCOLOR = "1a1a1a"; // ウィジェットの背景色
 const STACK_BGCOLOR = "262626"; // ギアstackの背景色
 const POWER_BGCOLOR = Color.black(); // ギアパワーの背景色
 const HEADER_COLOR = Color.white(); // ブランド名，販売残り時間の文字色
-const HEADER_FONTSIZE = 12; // ブランド名，販売残り時間の文字サイズ
+const PICKUP_HEADER_FONTSIZE = 12; // 販売残り時間の文字サイズ (ピックアップ)
+const LIMITED_HEADER_FONTSIZE = 12; // 販売残り時間の文字サイズ (通常)
 /* -------------- */
 
 const INK_URL = "https://splatoon3.ink/data/gear.json"
@@ -39,6 +40,8 @@ const SUB_HEIGHT = 8;
 const SUB_WIDTH = SUB_HEIGHT;
 const BRAND_HEIGHT = 20;
 const BRAND_WIDTH = BRAND_HEIGHT;
+const PICKUP_BRAND_HEIGHT = 24;
+const PICKUP_BRAND_WIDTH = PICKUP_BRAND_HEIGHT;
 
 const brandJP = {
 	"amiibo": "amiibo",
@@ -272,19 +275,27 @@ async function create_widget() {
 	const pickup_brand = brandJP[pickup.brand.name];
 	const pickup_endtime = pickup.saleEndTime;
 	const pickupHeader = pickupStack.addStack();
-	const pickupBrandNameEle = pickupHeader.addText(`Pick Up: ${pickup_brand}`);
+	const pickupBrandNameEle = pickupHeader.addText("[Pick Up]");
 	pickupBrandNameEle.textColor = HEADER_COLOR;
-	pickupBrandNameEle.font = Font.systemFont(HEADER_FONTSIZE);
+	pickupBrandNameEle.font = Font.systemFont(PICKUP_HEADER_FONTSIZE);
 	pickupHeader.addSpacer();
 	const pickupRemainEle = pickupHeader.addDate(new Date(pickup_endtime));
 	pickupRemainEle.textColor = HEADER_COLOR;
-	pickupRemainEle.font = Font.mediumMonospacedSystemFont(HEADER_FONTSIZE);
+	pickupRemainEle.font = Font.mediumMonospacedSystemFont(PICKUP_HEADER_FONTSIZE);
 	pickupRemainEle.applyTimerStyle();
 	pickupRemainEle.rightAlignText();
 	draw_border(pickupHeader);
 	
-	/// gears
 	const pickupGearsStack = pickupStack.addStack();
+	/// brand image
+	req = new Request(pickupGears[0].gear.brand.image.url);
+	const pickupBrandImage = await req.loadImage();
+	const pickupBrandImageStack = pickupGearsStack.addStack();
+	pickupBrandImageStack.backgroundColor = Color.white();
+	pickupBrandImageStack.size = new Size(PICKUP_BRAND_WIDTH, PICKUP_BRAND_HEIGHT);
+	const pickupBrandImageEle = pickupBrandImageStack.addImage(pickupBrandImage);
+
+	/// gears
 	pickupGearsStack.addSpacer();
 	for(const gear of pickupGears) {
 		const gearStack = pickupGearsStack.addStack();
@@ -331,7 +342,7 @@ async function create_widget() {
 			const endtime = gear.saleEndTime;
 			const remainEle = headerStack.addDate(new Date(endtime));
 			remainEle.textColor = HEADER_COLOR;
-			remainEle.font = Font.mediumMonospacedSystemFont(HEADER_FONTSIZE);
+			remainEle.font = Font.mediumMonospacedSystemFont(LIMITED_HEADER_FONTSIZE);
 			remainEle.applyTimerStyle();
 			remainEle.rightAlignText();
 
