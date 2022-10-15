@@ -23,10 +23,10 @@ const GESOGEAR_URL = "com.nintendo.znca://znca/game/4834290508791808?p=%2Fgesoto
 
 const FILE_MANAGER = FileManager.iCloud(); // .local() にするとローカルに保存する
 const PARENT_DIR = "splatnet-widget/";
-const UPD_DATE_FILENAME = "splatnet-widget/update_date.txt";
-const UPD_DATE_LOG_FILENAME = "splatnet-widget/update_log.txt";
-const RUNTIME_LOG_FILENAME = "splatnet-widget/runtime_log.txt";
-const GEARINFO_FILENAME = "splatnet-widget/gearinfo.json";
+const UPD_DATE_FILENAME = PARENT_DIR + "update_date.txt";
+const UPD_DATE_LOG_FILENAME = PARENT_DIR + "update_log.txt";
+const RUNTIME_LOG_FILENAME = PARENT_DIR + "runtime_log.txt";
+const GEARINFO_FILENAME = PARENT_DIR + "gearinfo.json";
 
 const WIDGET_PADDING = 10;
 const STACK_PADDING = 6;
@@ -66,6 +66,9 @@ const brandJP = {
 	"Zink": "アイロニック"
 };
 
+
+const abs_parent_path = FILE_MANAGER.joinPath(FILE_MANAGER.documentsDirectory(), PARENT_DIR);
+FILE_MANAGER.createDirectory(abs_parent_path, true);
 
 let unknownImage;
 const runtime = new Date();
@@ -363,8 +366,6 @@ async function create_widget() {
 }
 
 (async function() {
-	const abs_parent_path = FILE_MANAGER.joinPath(FILE_MANAGER.documentsDirectory(), PARENT_DIR);
-	FILE_MANAGER.createDirectory(abs_parent_path, true);
 	if(config.runsInWidget) {
 		if(config.widgetFamily === "small" || config.widgetFamily === "medium") {
 			const widget = create_small_widget();
