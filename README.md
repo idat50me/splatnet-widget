@@ -1,7 +1,7 @@
 # splatnet-widget
 splatnet-widget は，iOS App「[Scriptable](https://scriptable.app/)」を用いて，ゲソタウンで現在販売しているギアを表示するウィジェットです．
 
-<img src="https://user-images.githubusercontent.com/59227194/195637289-d97b817c-63ed-4c3e-b562-e7ca161e7947.jpeg" width="70%">
+<img src="https://user-images.githubusercontent.com/59227194/195967603-81d1dbc9-f2f4-4dee-a103-4e937cf3d0bf.jpeg" width="70%">
 
 ## Features
 - 販売しているギアの情報・販売残り時間を，ほぼリアルタイムで確認可能
