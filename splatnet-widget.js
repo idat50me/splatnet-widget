@@ -10,6 +10,7 @@
 
 
 /* --- OPTION --- */
+const HIDE_BRAND_LOGO = 0; // ブランドロゴ表示  0:表示する  1:表示しない
 const WIDGET_BGCOLOR = "1a1a1a"; // ウィジェットの背景色
 const STACK_BGCOLOR = "262626"; // ギアstackの背景色
 const POWER_BGCOLOR = Color.black(); // ギアパワーの背景色
@@ -65,6 +66,8 @@ const brandJP = {
 	"Zekko": "エゾッコ",
 	"Zink": "アイロニック"
 };
+
+const refreshHours = [1,5,5,5,5,9,9,9,9,13,13,13,13,17,17,17,17,21,21,21,21,1,1,1];
 
 
 const abs_parent_path = FILE_MANAGER.joinPath(FILE_MANAGER.documentsDirectory(), PARENT_DIR);
@@ -249,10 +252,11 @@ async function create_widget() {
 	widget.setPadding(WIDGET_PADDING, WIDGET_PADDING, WIDGET_PADDING, WIDGET_PADDING);
 	widget.spacing = STACK_PADDING;
 	const gearinfo = await get_gearinfo();
-	const runtime_after = new Date(runtime.getTime() + 1000*60*60);
-	if(runtime_after.getHours() % 2 == 0) runtime_after.setHours(runtime_after.getHours()+1); // 奇数時間に更新
-	// 時間ちょうどだと splatoon3.ink の更新が間に合っていないことがあるので30秒遅らせる
-	const next_refresh_date = new Date(runtime_after.getFullYear(), runtime_after.getMonth(), runtime_after.getDate(), runtime_after.getHours(), 0, 30);
+	const runtime_after = new Date(runtime.getTime());
+	runtime_after.setHours(refreshHours[runtime_after.getHours()]);
+	if(runtime.getTime() > runtime_after.getTime()) runtime_after = new Date(runtime_after.getTime() + (1000*60*60*24));
+	// 時間ちょうどだと splatoon3.ink の更新が間に合っていないことがあるので1分遅らせる
+	const next_refresh_date = new Date(runtime_after.getFullYear(), runtime_after.getMonth(), runtime_after.getDate(), runtime_after.getHours(), 1);
 	console.log(DFormat.string(runtime));
 	console.log(DFormat.string(runtime_after));
 	console.log(DFormat.string(next_refresh_date));
@@ -291,12 +295,14 @@ async function create_widget() {
 	
 	const pickupGearsStack = pickupStack.addStack();
 	/// brand image
-	req = new Request(pickupGears[0].gear.brand.image.url);
-	const pickupBrandImage = await req.loadImage();
-	const pickupBrandImageStack = pickupGearsStack.addStack();
-	pickupBrandImageStack.backgroundColor = Color.white();
-	pickupBrandImageStack.size = new Size(PICKUP_BRAND_WIDTH, PICKUP_BRAND_HEIGHT);
-	const pickupBrandImageEle = pickupBrandImageStack.addImage(pickupBrandImage);
+	if(!HIDE_BRAND_LOGO) {
+		req = new Request(pickupGears[0].gear.brand.image.url);
+		const pickupBrandImage = await req.loadImage();
+		const pickupBrandImageStack = pickupGearsStack.addStack();
+		pickupBrandImageStack.backgroundColor = Color.white();
+		pickupBrandImageStack.size = new Size(PICKUP_BRAND_WIDTH, PICKUP_BRAND_HEIGHT);
+		const pickupBrandImageEle = pickupBrandImageStack.addImage(pickupBrandImage);
+	}
 
 	/// gears
 	pickupGearsStack.addSpacer();
@@ -335,12 +341,14 @@ async function create_widget() {
 			// remaining time
 			const headerStack = gearStack.addStack();
 			//headerStack.setPadding(STACK_PADDING, STACK_PADDING, 0, STACK_PADDING);
-			req = new Request(gear.gear.brand.image.url);
-			const brandImage = await req.loadImage();
-			const brandImageStack = headerStack.addStack();
-			brandImageStack.backgroundColor = Color.white();
-			brandImageStack.size = new Size(BRAND_WIDTH, BRAND_HEIGHT);
-			const brandImageEle = brandImageStack.addImage(brandImage);
+			if(!HIDE_BRAND_LOGO) {
+				req = new Request(gear.gear.brand.image.url);
+				const brandImage = await req.loadImage();
+				const brandImageStack = headerStack.addStack();
+				brandImageStack.backgroundColor = Color.white();
+				brandImageStack.size = new Size(BRAND_WIDTH, BRAND_HEIGHT);
+				const brandImageEle = brandImageStack.addImage(brandImage);
+			}
 			headerStack.addSpacer();
 			const endtime = gear.saleEndTime;
 			const remainEle = headerStack.addDate(new Date(endtime));
