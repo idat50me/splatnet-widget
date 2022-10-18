@@ -252,7 +252,7 @@ async function create_widget() {
 	widget.setPadding(WIDGET_PADDING, WIDGET_PADDING, WIDGET_PADDING, WIDGET_PADDING);
 	widget.spacing = STACK_PADDING;
 	const gearinfo = await get_gearinfo();
-	const runtime_after = new Date(runtime.getTime());
+	let runtime_after = new Date(runtime.getTime());
 	runtime_after.setHours(refreshHours[runtime_after.getHours()]);
 	if(runtime.getTime() > runtime_after.getTime()) runtime_after = new Date(runtime_after.getTime() + (1000*60*60*24));
 	// 時間ちょうどだと splatoon3.ink の更新が間に合っていないことがあるので1分遅らせる
